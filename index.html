@@ -6,958 +6,2295 @@
 <title>天宫秘境 - 探索东方仙侠世界</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
---gold:#c9a84c;--gold-light:#f0d68a;--gold-dark:#8a6d2b;
---blue-deep:#080c22;--blue-mid:#141e48;--blue-light:#3a5cc4;
---blue-glow:#4a8eff;--cyan:#00d4ff;--purple:#8a6dff;
---glass:rgba(12,20,55,0.65);--glass-border:rgba(80,140,255,0.18);
-}
-html{scroll-behavior:smooth}
-body{
-font-family:'PingFang SC','Microsoft YaHei','Helvetica Neue',sans-serif;
-background:var(--blue-deep);color:#d8e0f8;overflow-x:hidden;
-min-height:100vh;line-height:1.5;
-}
-#three-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
 
-/* ========== 背景装饰 ========== */
-.bg-overlay{
-position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;
-background:radial-gradient(ellipse at 60% 20%,rgba(60,80,180,0.15) 0%,transparent 55%),
-radial-gradient(ellipse at 20% 80%,rgba(100,60,180,0.08) 0%,transparent 50%);
-}
-.moon-wrap{position:fixed;z-index:1;pointer-events:none;top:2%;right:18%;transition:transform .15s ease-out}
-.moon{
-width:220px;height:220px;border-radius:50%;
-background:radial-gradient(circle at 38% 38%,#f5f0d8,#ddd5a8 35%,rgba(180,165,110,0.25) 70%,transparent);
-box-shadow:0 0 60px rgba(240,230,180,0.25),0 0 120px rgba(200,180,120,0.1);
-filter:blur(.8px);
-}
-.moon::after{
-content:'';position:absolute;inset:-30px;border-radius:50%;
-background:radial-gradient(circle,rgba(255,250,200,0.06),transparent 70%);
-animation:moonPulse 5s ease-in-out infinite;
-}
-@keyframes moonPulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.08);opacity:1}}
-
-/* 流云 */
-.cloud-layer{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:hidden}
-.cloud{
-position:absolute;border-radius:50%;
-background:radial-gradient(ellipse,rgba(130,160,220,0.07),transparent 70%);
-filter:blur(25px);
-}
-.c1{width:500px;height:160px;top:12%;left:-8%;animation:cFloat 22s ease-in-out infinite}
-.c2{width:400px;height:140px;top:22%;right:-12%;animation:cFloat 18s ease-in-out infinite -6s}
-.c3{width:600px;height:120px;bottom:25%;left:15%;animation:cFloat 25s ease-in-out infinite -12s}
-@keyframes cFloat{0%,100%{transform:translateX(0) translateY(0);opacity:.5}50%{transform:translateX(50px) translateY(-15px);opacity:.9}}
-
-/* 金色浮尘 */
-.dust{
-position:fixed;z-index:2;pointer-events:none;
-width:3px;height:3px;border-radius:50%;
-background:var(--gold-light);
-box-shadow:0 0 6px var(--gold),0 0 12px rgba(201,168,76,0.25);
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* ========== 主布局 ========== */
-#app{position:relative;z-index:10;display:flex;min-height:100vh}
-
-/* 侧边栏 */
-.sidebar{
-width:68px;min-height:100vh;position:fixed;left:0;top:0;z-index:100;
-background:linear-gradient(180deg,rgba(10,18,50,0.92),rgba(14,22,58,0.96));
-border-right:1px solid var(--glass-border);
-backdrop-filter:blur(18px);
-display:flex;flex-direction:column;align-items:center;
-padding:14px 0;gap:2px;
-transition:width .3s ease;
-}
-.sidebar.collapsed{width:0;overflow:hidden;border:none;padding:0}
-.sidebar-logo{width:44px;height:44px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
-.lotus-svg{animation:lotusR 12s linear infinite}
-@keyframes lotusR{to{transform:rotate(360deg)}}
-
-.sb-item{
-width:52px;height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-border-radius:10px;cursor:pointer;transition:all .25s;gap:2px;position:relative;
-}
-.sb-item:hover{background:rgba(74,138,255,0.12);transform:scale(1.06)}
-.sb-item.active{
-background:linear-gradient(135deg,rgba(74,138,255,0.2),rgba(138,109,255,0.12));
-border:1px solid rgba(74,138,255,0.35);
-box-shadow:0 0 12px rgba(74,138,255,0.15);
-}
-.sb-item.active::before{
-content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);
-width:3px;height:22px;background:var(--blue-glow);border-radius:0 3px 3px 0;
-box-shadow:0 0 8px var(--blue-glow);
-}
-.sb-icon{font-size:18px}
-.sb-label{font-size:9px;color:rgba(180,195,230,0.6);font-weight:500}
-.sb-item.active .sb-label{color:var(--blue-glow)}
-.sb-toggle{
-margin-top:auto;width:32px;height:32px;display:flex;align-items:center;justify-content:center;
-border-radius:50%;border:1px solid var(--glass-border);cursor:pointer;
-font-size:13px;color:rgba(180,195,230,0.5);transition:all .3s;
-}
-.sb-toggle:hover{background:rgba(74,138,255,0.12);border-color:var(--blue-glow);color:var(--blue-glow)}
-
-/* 主内容 */
-.main{flex:1;margin-left:68px;transition:margin-left .3s}
-.main.expanded{margin-left:0}
-.scroll-wrap{padding-bottom:80px;min-height:100vh}
-
-/* ========== 顶部英雄区 ========== */
-.hero{
-position:relative;height:340px;overflow:hidden;
-background:linear-gradient(180deg,transparent 0%,rgba(8,12,34,0.5) 100%);
-}
-.hero-inner{position:relative;height:100%;max-width:1200px;margin:0 auto;padding:0 28px}
-
-/* 角色区 */
-.char-area{
-position:absolute;right:2%;top:-8%;width:420px;height:115%;pointer-events:none;
-transition:transform .12s ease-out;
-}
-.char-glow{
-position:absolute;bottom:10%;left:50%;transform:translateX(-50%);
-width:300px;height:300px;border-radius:50%;
-background:radial-gradient(circle,rgba(80,130,255,0.06),transparent 70%);
-}
-/* 丝带 */
-.ribbon{
-position:absolute;height:3px;border-radius:2px;
-transform-origin:left center;pointer-events:none;
-}
-.r1{top:30%;left:55%;width:130px;background:linear-gradient(90deg,rgba(80,140,255,0.45),rgba(80,140,255,0.08),transparent);animation:rFloat 3.5s ease-in-out infinite}
-.r2{top:40%;left:50%;width:160px;background:linear-gradient(90deg,rgba(100,170,255,0.35),rgba(100,170,255,0.06),transparent);animation:rFloat 4.2s ease-in-out infinite -.8s}
-.r3{top:48%;left:62%;width:110px;background:linear-gradient(90deg,rgba(120,190,255,0.3),rgba(120,190,255,0.05),transparent);animation:rFloat 3.8s ease-in-out infinite -1.6s}
-.r4{top:26%;left:42%;width:90px;background:linear-gradient(90deg,transparent,rgba(200,175,100,0.3),rgba(200,175,100,0.06));animation:rFloat 4.5s ease-in-out infinite -2.2s}
-.r5{top:55%;left:48%;width:140px;background:linear-gradient(90deg,rgba(140,200,255,0.25),transparent);animation:rFloat 5s ease-in-out infinite -3s}
-@keyframes rFloat{
-0%,100%{transform:translateY(0) rotate(0deg) scaleX(1)}
-25%{transform:translateY(-10px) rotate(4deg) scaleX(1.08)}
-50%{transform:translateY(-5px) rotate(-2deg) scaleX(.96)}
-75%{transform:translateY(-14px) rotate(6deg) scaleX(1.04)}
+:root {
+  --gold: #c9a84c;
+  --gold-light: #f0d68a;
+  --gold-dark: #8a6d2b;
+  --blue-deep: #0a0e2a;
+  --blue-mid: #1a2456;
+  --blue-light: #3a5cc4;
+  --blue-glow: #4a8eff;
+  --cyan-glow: #00d4ff;
+  --purple-glow: #8a6dff;
+  --glass-bg: rgba(10, 20, 60, 0.55);
+  --glass-border: rgba(100, 160, 255, 0.2);
+  --glass-highlight: rgba(200, 220, 255, 0.08);
 }
 
-/* 头发丝 */
-.hair-wrap{position:absolute;top:12%;left:32%;width:160px;height:240px;pointer-events:none}
-.hair{
-position:absolute;width:3px;border-radius:2px;
-background:linear-gradient(180deg,rgba(60,110,210,0.5),rgba(50,90,180,0.15),transparent);
-transform-origin:top center;
-animation:hairW 3s ease-in-out infinite;
-}
-@keyframes hairW{0%,100%{transform:rotate(-2deg) translateX(0)}40%{transform:rotate(3deg) translateX(4px)}70%{transform:rotate(-1deg) translateX(-2px)}}
-
-/* 角色轮廓光 */
-.char-silhouette{
-position:absolute;bottom:8%;left:50%;transform:translateX(-50%);
-width:160px;height:65%;
-background:linear-gradient(180deg,rgba(70,110,200,0.04),rgba(60,100,180,0.1),rgba(50,80,160,0.04));
-border-radius:45% 45% 25% 25%;filter:blur(3px);
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background: var(--blue-deep);
+  color: #e0e8ff;
+  overflow-x: hidden;
+  min-height: 100vh;
 }
 
-/* 英雄文字 */
-.hero-text{
-position:absolute;left:28px;top:50%;transform:translateY(-50%);z-index:5;
-transition:transform .12s ease-out;
+#three-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
 }
-.badge{
-display:inline-flex;align-items:center;gap:3px;
-background:rgba(201,168,76,0.18);border:1px solid rgba(201,168,76,0.35);
-border-radius:4px;padding:2px 8px;font-size:11px;color:var(--gold-light);margin-bottom:8px;
-}
-.hero-title{
-font-size:52px;font-weight:900;letter-spacing:8px;line-height:1.15;margin-bottom:6px;
-background:linear-gradient(135deg,#f2da8a 0%,#c9a84c 40%,#f2da8a 65%,#c9a84c 100%);
--webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-filter:drop-shadow(0 2px 10px rgba(201,168,76,0.45));
-animation:titleG 3.5s ease-in-out infinite;
-}
-@keyframes titleG{0%,100%{filter:drop-shadow(0 2px 10px rgba(201,168,76,0.45))}50%{filter:drop-shadow(0 2px 20px rgba(201,168,76,0.75))}}
-.hero-sub{font-size:15px;color:rgba(195,205,235,0.65);letter-spacing:6px;font-weight:300}
 
-/* 状态栏 */
-.top-bar{
-position:absolute;top:14px;right:24px;z-index:20;
-display:flex;align-items:center;gap:14px;
+#parallax-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
 }
-.time-w{font-size:12px;color:rgba(190,200,230,0.55);display:flex;align-items:center;gap:8px}
-.user-card{
-display:flex;align-items:center;gap:9px;
-background:var(--glass);border:1px solid var(--glass-border);
-border-radius:24px;padding:5px 14px 5px 5px;
-backdrop-filter:blur(12px);cursor:pointer;transition:all .3s;
-}
-.user-card:hover{border-color:var(--blue-glow);box-shadow:0 0 14px rgba(74,138,255,0.18)}
-.avatar{
-width:38px;height:38px;border-radius:50%;
-background:linear-gradient(135deg,#3a5cc4,#8a6dff);
-border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;
-font-size:16px;overflow:hidden;
-}
-.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-.u-name{font-size:12px;font-weight:700;color:#f0d68a}
-.u-vip{display:flex;align-items:center;gap:4px}
-.vip-b{font-size:9px;background:linear-gradient(90deg,var(--gold-dark),var(--gold));padding:1px 5px;border-radius:3px;color:#fff}
-.u-lv{font-size:9px;color:rgba(190,200,230,0.5)}
 
-/* ========== 搜索栏 ========== */
-.search-wrap{max-width:1200px;margin:-20px auto 0;padding:0 28px;position:relative;z-index:15}
-.search-bar{
-display:flex;align-items:center;
-background:var(--glass);border:1px solid var(--glass-border);
-border-radius:24px;padding:9px 18px;backdrop-filter:blur(18px);
-max-width:560px;transition:all .3s;
+.parallax-layer {
+  position: absolute;
+  width: 110%;
+  height: 110%;
+  top: -5%;
+  left: -5%;
+  transition: transform 0.1s ease-out;
 }
-.search-bar:focus-within{border-color:var(--blue-glow);box-shadow:0 0 18px rgba(74,138,255,0.12)}
-.search-bar input{
-flex:1;background:none;border:none;color:#d8e0f8;font-size:13px;outline:none;font-family:inherit;
-}
-.search-bar input::placeholder{color:rgba(180,195,230,0.35)}
-.search-btn{
-width:30px;height:30px;display:flex;align-items:center;justify-content:center;
-border-radius:50%;background:rgba(74,138,255,0.12);border:none;
-color:var(--blue-glow);cursor:pointer;font-size:14px;transition:all .3s;
-}
-.search-btn:hover{background:rgba(74,138,255,0.28);box-shadow:0 0 10px rgba(74,138,255,0.25)}
 
-/* ========== 导航卡片 ========== */
-.nav-row{
-max-width:1200px;margin:0 auto;padding:14px 28px;
-display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
+.bg-gradient {
+  background: radial-gradient(ellipse at 50% 30%, rgba(40, 60, 150, 0.4) 0%, rgba(10, 14, 42, 0.9) 60%, #0a0e2a 100%);
+  width: 100%;
+  height: 100%;
 }
-.nav-card{
-display:flex;align-items:center;gap:10px;padding:14px;
-background:var(--glass);border:1px solid var(--glass-border);
-border-radius:11px;backdrop-filter:blur(14px);
-cursor:pointer;transition:all .3s;position:relative;overflow:hidden;
-}
-.nav-card::before{
-content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
-background:linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent);
-transition:left .5s;
-}
-.nav-card:hover::before{left:100%}
-.nav-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 22px rgba(201,168,76,0.12)}
-.nc-icon{
-width:40px;height:40px;border-radius:9px;flex-shrink:0;
-display:flex;align-items:center;justify-content:center;font-size:20px;
-background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.18);
-}
-.nc-text h4{font-size:13px;font-weight:700;color:#eee0c0;margin-bottom:1px}
-.nc-text p{font-size:10px;color:rgba(180,195,230,0.45)}
-.notif-dot{
-position:absolute;top:9px;right:9px;width:7px;height:7px;
-background:#ff4757;border-radius:50%;
-box-shadow:0 0 6px rgba(255,71,87,0.5);animation:dotP 2s ease-in-out infinite;
-}
-@keyframes dotP{0%,100%{transform:scale(1)}50%{transform:scale(1.4)}}
 
-/* ========== 内容网格 ========== */
-.grid-2{
-max-width:1200px;margin:0 auto;padding:0 28px 14px;
-display:grid;grid-template-columns:1fr 1fr;gap:14px;
+.moon {
+  position: absolute;
+  top: 5%;
+  right: 25%;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #f0eedd, #d4c8a0 40%, rgba(180, 160, 120, 0.3) 70%, transparent 100%);
+  box-shadow: 0 0 80px rgba(240, 230, 180, 0.3), 0 0 160px rgba(200, 180, 120, 0.15);
+  filter: blur(1px);
 }
-.card{
-background:var(--glass);border:1px solid var(--glass-border);
-border-radius:14px;padding:18px;backdrop-filter:blur(14px);
-}
-.sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.sec-title{font-size:17px;font-weight:700;color:#eee0c0;letter-spacing:1px}
-.sec-more{font-size:11px;color:rgba(180,195,230,0.45);cursor:pointer;transition:color .3s}
-.sec-more:hover{color:var(--blue-glow)}
 
-/* 秘境卡 */
-.realm-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.realm{border-radius:10px;overflow:hidden;cursor:pointer;transition:all .3s;background:rgba(15,20,50,0.5)}
-.realm:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,0.3)}
-.realm-img{
-width:100%;height:105px;display:flex;align-items:center;justify-content:center;
-position:relative;overflow:hidden;
+.cloud {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(150, 170, 220, 0.12), transparent 70%);
+  filter: blur(20px);
+  animation: cloudFloat 20s ease-in-out infinite;
 }
-.realm-img span{font-size:42px;opacity:.6;transition:transform .4s}
-.realm:hover .realm-img span{transform:scale(1.15)}
-.ri-1{background:linear-gradient(135deg,#152a5a,#1e4080)}
-.ri-2{background:linear-gradient(135deg,#3a2518,#6a4028)}
-.ri-3{background:linear-gradient(135deg,#1e1240,#3a2870)}
-.realm-info{padding:7px 8px}
-.realm-name{font-size:12px;font-weight:600;margin-bottom:3px}
-.stars{display:flex;gap:1px}
-.stars span{font-size:11px;color:var(--gold)}
-.stars .empty{color:rgba(180,195,230,0.18)}
 
-/* 排行 */
-.rank-list{display:flex;flex-direction:column;gap:8px}
-.rank-item{
-display:flex;align-items:center;gap:10px;padding:7px 10px;
-border-radius:8px;cursor:pointer;transition:background .3s;
-}
-.rank-item:hover{background:rgba(74,138,255,0.06)}
-.rank-b{
-width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-font-size:11px;font-weight:700;flex-shrink:0;
-}
-.rb-1{background:linear-gradient(135deg,#ffd700,#ff8c00);color:#fff;box-shadow:0 0 8px rgba(255,215,0,0.35)}
-.rb-2{background:linear-gradient(135deg,#c0c0c0,#888);color:#fff}
-.rb-3{background:linear-gradient(135deg,#cd7f32,#8b4513);color:#fff}
-.rb-n{background:rgba(80,120,180,0.12);color:rgba(180,195,230,0.45)}
-.rank-av{
-width:34px;height:34px;border-radius:50%;flex-shrink:0;
-background:linear-gradient(135deg,#3a5cc4,#5a3a8a);
-display:flex;align-items:center;justify-content:center;font-size:14px;
-border:2px solid rgba(180,195,230,0.12);
-}
-.rank-item:first-child .rank-av{border-color:var(--gold)}
-.rk-name{flex:1;font-size:12px;font-weight:500}
-.rk-pw{font-size:13px;font-weight:700}
-.rk-pw.g{color:var(--gold-light)}.rk-pw.s{color:#c0c0c0}.rk-pw.br{color:#cd9f6f}
-.rk-trend{font-size:11px;color:#4caf50}
+.cloud-1 { width: 600px; height: 200px; top: 15%; left: -5%; animation-delay: 0s; }
+.cloud-2 { width: 500px; height: 180px; top: 25%; right: -10%; animation-delay: -7s; }
+.cloud-3 { width: 700px; height: 150px; bottom: 30%; left: 10%; animation-delay: -14s; }
 
-/* ========== 下方内容 ========== */
-/* 活动横幅 */
-.event-banner{
-position:relative;border-radius:11px;overflow:hidden;height:150px;
-background:linear-gradient(135deg,rgba(18,28,68,0.85),rgba(28,18,55,0.85));
-display:flex;align-items:center;padding:22px;margin-top:6px;
+@keyframes cloudFloat {
+  0%, 100% { transform: translateX(0) translateY(0); opacity: 0.6; }
+  50% { transform: translateX(40px) translateY(-10px); opacity: 0.9; }
 }
-.event-glow{
-position:absolute;top:0;left:0;width:100%;height:100%;
-background:radial-gradient(ellipse at 70% 50%,rgba(100,140,255,0.08),transparent 60%);
-}
-.event-char{position:absolute;right:15px;bottom:-10px;font-size:80px;opacity:.15}
-.ev-content{position:relative;z-index:2}
-.ev-title{
-font-size:26px;font-weight:900;margin-bottom:3px;
-background:linear-gradient(135deg,#f0d68a,#c9a84c);
--webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.ev-time{font-size:11px;color:rgba(180,195,230,0.45);margin-bottom:10px}
-.glow-btn{
-display:inline-flex;align-items:center;gap:5px;
-padding:7px 18px;border:none;border-radius:18px;
-background:linear-gradient(135deg,var(--gold),var(--gold-dark));
-color:#1a1a2e;font-size:12px;font-weight:700;
-cursor:pointer;font-family:inherit;transition:all .3s;
-position:relative;overflow:hidden;
-}
-.glow-btn::before{
-content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
-background:linear-gradient(45deg,transparent 42%,rgba(255,255,255,0.3) 50%,transparent 58%);
-animation:btnShine 3s ease-in-out infinite;
-}
-@keyframes btnShine{0%{transform:translateX(-100%) rotate(45deg)}100%{transform:translateX(100%) rotate(45deg)}}
-.glow-btn:hover{transform:scale(1.06);box-shadow:0 0 18px rgba(201,168,76,0.5)}
-.ev-dots{display:flex;gap:5px;margin-top:10px}
-.ev-dot{width:5px;height:5px;border-radius:50%;background:rgba(180,195,230,0.25);cursor:pointer;transition:all .3s}
-.ev-dot.active{background:var(--gold);width:16px;border-radius:3px}
 
-/* 修为 */
-.cult-card{
-display:flex;align-items:center;gap:14px;padding:14px;
-background:rgba(14,20,48,0.45);border-radius:11px;margin-top:6px;
+.golden-particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
-.cult-icon{
-width:56px;height:56px;border-radius:50%;flex-shrink:0;
-background:radial-gradient(circle,rgba(74,138,255,0.15),transparent);
-border:2px solid rgba(74,138,255,0.25);
-display:flex;align-items:center;justify-content:center;font-size:24px;
-animation:cultP 3.5s ease-in-out infinite;
-}
-@keyframes cultP{0%,100%{box-shadow:0 0 8px rgba(74,138,255,0.15)}50%{box-shadow:0 0 22px rgba(74,138,255,0.35);border-color:rgba(74,138,255,0.5)}}
-.cult-info{flex:1}
-.cult-rank{font-size:15px;font-weight:700;color:var(--gold-light);margin-bottom:6px}
-.prog-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
-.prog-bar{flex:1;height:5px;background:rgba(74,138,255,0.12);border-radius:3px;overflow:hidden}
-.prog-fill{
-height:100%;border-radius:3px;position:relative;
-background:linear-gradient(90deg,var(--blue-glow),var(--cyan));
-transition:width .8s ease;
-}
-.prog-fill::after{
-content:'';position:absolute;right:0;top:0;width:16px;height:100%;
-background:linear-gradient(90deg,transparent,rgba(255,255,255,0.45));
-animation:pShine 2s ease-in-out infinite;
-}
-@keyframes pShine{0%,100%{opacity:0}50%{opacity:1}}
-.prog-text{font-size:10px;color:rgba(180,195,230,0.45);white-space:nowrap}
-.cult-rate{font-size:11px;color:rgba(180,195,230,0.45)}
-.cult-rate em{color:#4caf50;font-style:normal;font-weight:600}
-.break-btn{
-padding:9px 20px;border:none;border-radius:18px;
-background:linear-gradient(135deg,var(--gold),var(--gold-dark));
-color:#1a1a2e;font-size:13px;font-weight:700;
-cursor:pointer;font-family:inherit;transition:all .3s;
-position:relative;overflow:hidden;white-space:nowrap;flex-shrink:0;
-}
-.break-btn::before{
-content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
-background:linear-gradient(45deg,transparent 42%,rgba(255,255,255,0.25) 50%,transparent 58%);
-animation:btnShine 2.5s ease-in-out infinite;
-}
-.break-btn:hover{transform:scale(1.06);box-shadow:0 0 22px rgba(201,168,76,0.5)}
 
-/* ========== 底部导航 ========== */
-.bot-nav{
-position:fixed;bottom:0;left:68px;right:0;height:60px;z-index:100;
-background:linear-gradient(180deg,rgba(10,14,38,0.88),rgba(10,14,38,0.97));
-border-top:1px solid var(--glass-border);backdrop-filter:blur(18px);
-display:flex;align-items:center;justify-content:center;gap:0;
-transition:left .3s;
+.g-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--gold-light);
+  box-shadow: 0 0 6px var(--gold), 0 0 12px rgba(201, 168, 76, 0.3);
+  animation: particleFloat 8s ease-in-out infinite;
 }
-.bot-nav.expanded{left:0}
-.bn-item{
-flex:1;max-width:100px;display:flex;flex-direction:column;align-items:center;
-gap:3px;cursor:pointer;transition:all .25s;padding:6px 0;
-}
-.bn-item:hover{transform:translateY(-2px)}
-.bn-icon{font-size:20px}
-.bn-label{font-size:9px;color:rgba(180,195,230,0.45)}
-.bn-item.active .bn-label{color:var(--gold-light)}
-.bn-item.center{margin-top:-18px}
-.bn-item.center .bn-icon{
-width:48px;height:48px;border-radius:50%;
-background:linear-gradient(135deg,var(--gold),var(--gold-dark));
-display:flex;align-items:center;justify-content:center;font-size:22px;
-box-shadow:0 0 18px rgba(201,168,76,0.35);
-border:3px solid rgba(10,14,38,0.85);
-animation:cGlow 3s ease-in-out infinite;
-}
-@keyframes cGlow{0%,100%{box-shadow:0 0 18px rgba(201,168,76,0.35)}50%{box-shadow:0 0 30px rgba(201,168,76,0.65)}}
 
-/* ========== 弹窗 ========== */
-.modal-bg{
-position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);
-z-index:2000;display:none;align-items:center;justify-content:center;
+@keyframes particleFloat {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  50% { transform: translateY(-100px) scale(1.5); }
 }
-.modal-bg.open{display:flex}
-.modal{
-background:linear-gradient(135deg,rgba(14,24,60,0.96),rgba(20,28,72,0.96));
-border:1px solid var(--glass-border);border-radius:18px;
-padding:28px 32px;max-width:460px;width:92%;
-backdrop-filter:blur(18px);position:relative;
-animation:mUp .35s ease;
-}
-@keyframes mUp{from{transform:translateY(25px);opacity:0}to{transform:translateY(0);opacity:1}}
-.modal-x{
-position:absolute;top:10px;right:14px;font-size:18px;cursor:pointer;
-color:rgba(180,195,230,0.4);background:none;border:none;transition:color .3s;
-}
-.modal-x:hover{color:#fff}
-.modal h3{
-font-size:22px;font-weight:800;color:var(--gold-light);
-margin-bottom:14px;text-align:center;letter-spacing:2px;
-}
-.modal-body{text-align:center;color:rgba(195,205,230,0.7);line-height:2;font-size:13px}
-.modal-btn{
-display:inline-flex;margin-top:16px;padding:9px 28px;
-background:linear-gradient(135deg,var(--gold),var(--gold-dark));
-border:none;border-radius:22px;color:#1a1a2e;font-size:13px;font-weight:700;
-cursor:pointer;font-family:inherit;transition:all .3s;
-}
-.modal-btn:hover{transform:scale(1.05);box-shadow:0 0 18px rgba(201,168,76,0.5)}
 
-/* ========== Toast ========== */
-.toast-wrap{position:fixed;top:18px;right:18px;z-index:3000;display:flex;flex-direction:column;gap:7px;pointer-events:none}
-.toast{
-padding:10px 16px;
-background:linear-gradient(135deg,rgba(14,24,60,0.95),rgba(20,28,72,0.95));
-border:1px solid var(--gold);border-radius:10px;backdrop-filter:blur(14px);
-display:flex;align-items:center;gap:8px;
-box-shadow:0 4px 16px rgba(0,0,0,0.3);
-animation:tIn .35s ease,tOut .35s ease 2.8s forwards;
-min-width:200px;pointer-events:auto;
+/* ===== MAIN LAYOUT ===== */
+#app {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  min-height: 100vh;
 }
-@keyframes tIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-@keyframes tOut{to{transform:translateX(110%);opacity:0}}
-.toast-i{font-size:16px}
-.toast-t{font-size:12px;color:rgba(200,210,235,0.88)}
 
-/* 点击涟漪 */
-.ripple{
-position:absolute;border-radius:50%;pointer-events:none;
-background:radial-gradient(circle,rgba(201,168,76,0.35),transparent 70%);
-animation:rip .55s ease-out forwards;
+/* ===== LEFT SIDEBAR ===== */
+.sidebar {
+  width: 72px;
+  min-height: 100vh;
+  background: linear-gradient(180deg, rgba(10, 20, 60, 0.85) 0%, rgba(15, 25, 70, 0.9) 100%);
+  border-right: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  gap: 4px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
 }
-@keyframes rip{0%{width:0;height:0;opacity:1}100%{width:120px;height:120px;opacity:0;margin:-60px 0 0 -60px}}
 
-/* 闪光粒子 */
-.spark{
-position:fixed;width:4px;height:4px;border-radius:50%;pointer-events:none;
-background:var(--gold-light);box-shadow:0 0 6px var(--gold);
-animation:sparkA .8s ease-out forwards;z-index:9999;
+.sidebar-logo {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-@keyframes sparkA{0%{transform:scale(0);opacity:1}50%{transform:scale(1.8);opacity:.8}100%{transform:scale(0);opacity:0}}
 
-/* 响应式 */
-@media(max-width:1024px){
-.nav-row{grid-template-columns:repeat(2,1fr)}
-.grid-2{grid-template-columns:1fr}
-.char-area{opacity:.25}
+.lotus-icon {
+  font-size: 32px;
+  filter: drop-shadow(0 0 8px var(--gold));
+  animation: lotusRotate 10s linear infinite;
 }
-@media(max-width:768px){
-.sidebar{display:none}
-.main{margin-left:0!important}
-.bot-nav{left:0!important}
-.hero-title{font-size:34px;letter-spacing:4px}
-.realm-row{grid-template-columns:repeat(2,1fr)}
-.nav-row{grid-template-columns:1fr 1fr}
-.top-bar{right:12px;gap:8px}
-.hero-text{left:16px}
+
+@keyframes lotusRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
-@media(max-width:480px){
-.nav-row{grid-template-columns:1fr}
-.hero{height:260px}
-.hero-title{font-size:28px}
+
+.sidebar-item {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  gap: 2px;
+}
+
+.sidebar-item:hover {
+  background: rgba(74, 138, 255, 0.15);
+  transform: scale(1.05);
+}
+
+.sidebar-item.active {
+  background: linear-gradient(135deg, rgba(74, 138, 255, 0.25), rgba(138, 109, 255, 0.15));
+  border: 1px solid rgba(74, 138, 255, 0.4);
+  box-shadow: 0 0 15px rgba(74, 138, 255, 0.2);
+}
+
+.sidebar-item.active::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  background: var(--blue-glow);
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 8px var(--blue-glow);
+}
+
+.sidebar-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.sidebar-label {
+  font-size: 10px;
+  color: rgba(200, 210, 240, 0.7);
+  font-weight: 500;
+}
+
+.sidebar-item.active .sidebar-label {
+  color: var(--blue-glow);
+}
+
+.sidebar-collapse {
+  margin-top: auto;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.sidebar-collapse:hover {
+  background: rgba(74, 138, 255, 0.15);
+  border-color: var(--blue-glow);
+}
+
+/* ===== MAIN CONTENT ===== */
+.main-content {
+  flex: 1;
+  margin-left: 72px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== HERO SECTION ===== */
+.hero-section {
+  position: relative;
+  height: 380px;
+  overflow: hidden;
+  margin: 0;
+}
+
+.hero-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(20, 30, 80, 0.6) 0%, rgba(10, 15, 40, 0.3) 50%, rgba(15, 25, 65, 0.5) 100%);
+}
+
+.hero-character {
+  position: absolute;
+  right: 10%;
+  bottom: 0;
+  height: 120%;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.hero-character-placeholder {
+  position: absolute;
+  right: 5%;
+  top: -5%;
+  width: 450px;
+  height: 110%;
+  background: linear-gradient(180deg, transparent 0%, rgba(100, 140, 255, 0.03) 30%, rgba(100, 140, 255, 0.06) 60%, transparent 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.character-silhouette {
+  width: 350px;
+  height: 90%;
+  position: relative;
+}
+
+.char-body {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  height: 70%;
+  background: linear-gradient(180deg, rgba(80, 120, 200, 0.08), rgba(60, 100, 180, 0.15), rgba(40, 80, 160, 0.08));
+  border-radius: 50% 50% 30% 30%;
+  filter: blur(2px);
+}
+
+.char-hair {
+  position: absolute;
+  top: 10%;
+  left: 30%;
+  width: 160px;
+  height: 250px;
+  overflow: hidden;
+}
+
+.hair-strand {
+  position: absolute;
+  width: 4px;
+  background: linear-gradient(180deg, rgba(60, 100, 200, 0.6), rgba(40, 80, 180, 0.2), transparent);
+  border-radius: 2px;
+  animation: hairFlow 3s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+@keyframes hairFlow {
+  0%, 100% { transform: rotate(-3deg) translateX(0); }
+  33% { transform: rotate(2deg) translateX(5px); }
+  66% { transform: rotate(-1deg) translateX(-3px); }
+}
+
+.ribbon {
+  position: absolute;
+  height: 3px;
+  border-radius: 2px;
+  animation: ribbonFloat 4s ease-in-out infinite;
+  filter: blur(0.5px);
+}
+
+@keyframes ribbonFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg) scaleX(1); }
+  25% { transform: translateY(-8px) rotate(3deg) scaleX(1.1); }
+  50% { transform: translateY(-4px) rotate(-2deg) scaleX(0.95); }
+  75% { transform: translateY(-12px) rotate(5deg) scaleX(1.05); }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 5;
+  padding: 60px 40px 30px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(201, 168, 76, 0.2);
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: var(--gold-light);
+  width: fit-content;
+  margin-bottom: 8px;
+}
+
+.hero-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 56px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #f0d68a 0%, #c9a84c 40%, #f0d68a 60%, #c9a84c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 2px 8px rgba(201, 168, 76, 0.4));
+  line-height: 1.2;
+  letter-spacing: 8px;
+  margin-bottom: 8px;
+  animation: titleGlow 3s ease-in-out infinite;
+}
+
+@keyframes titleGlow {
+  0%, 100% { filter: drop-shadow(0 2px 8px rgba(201, 168, 76, 0.4)); }
+  50% { filter: drop-shadow(0 2px 16px rgba(201, 168, 76, 0.7)); }
+}
+
+.hero-subtitle {
+  font-size: 16px;
+  color: rgba(200, 210, 240, 0.7);
+  letter-spacing: 6px;
+  font-weight: 300;
+}
+
+/* Status bar top right */
+.status-bar {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 20;
+}
+
+.status-time {
+  font-size: 13px;
+  color: rgba(200, 210, 240, 0.6);
+  font-weight: 300;
+}
+
+.status-weather {
+  font-size: 12px;
+  color: rgba(200, 210, 240, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 25px;
+  padding: 6px 16px 6px 6px;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.user-profile:hover {
+  border-color: var(--blue-glow);
+  box-shadow: 0 0 15px rgba(74, 138, 255, 0.2);
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3a5cc4, #8a6dff);
+  border: 2px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  overflow: hidden;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f0d68a;
+}
+
+.user-vip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vip-badge {
+  font-size: 10px;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold));
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: #fff;
+}
+
+.user-level {
+  font-size: 10px;
+  color: rgba(200, 210, 240, 0.6);
+}
+
+/* ===== SEARCH BAR ===== */
+.search-section {
+  padding: 0 24px;
+  margin-top: -24px;
+  position: relative;
+  z-index: 15;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 25px;
+  padding: 10px 20px;
+  backdrop-filter: blur(20px);
+  transition: all 0.3s;
+  max-width: 600px;
+}
+
+.search-bar:focus-within {
+  border-color: var(--blue-glow);
+  box-shadow: 0 0 20px rgba(74, 138, 255, 0.15);
+}
+
+.search-bar input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #e0e8ff;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+}
+
+.search-bar input::placeholder {
+  color: rgba(200, 210, 240, 0.4);
+}
+
+.search-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(74, 138, 255, 0.15);
+  border: none;
+  color: var(--blue-glow);
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.search-btn:hover {
+  background: rgba(74, 138, 255, 0.3);
+  box-shadow: 0 0 10px rgba(74, 138, 255, 0.3);
+}
+
+/* ===== NAV CARDS ===== */
+.nav-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 16px 24px;
+}
+
+.nav-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  backdrop-filter: blur(15px);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  transition: left 0.5s;
+}
+
+.nav-card:hover::before {
+  left: 100%;
+}
+
+.nav-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(201, 168, 76, 0.15);
+  background: rgba(15, 25, 70, 0.7);
+}
+
+.nav-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  flex-shrink: 0;
+}
+
+.nav-card-text h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f0e6c8;
+  margin-bottom: 2px;
+}
+
+.nav-card-text p {
+  font-size: 11px;
+  color: rgba(200, 210, 240, 0.5);
+}
+
+.nav-card .notification-dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  background: #ff4757;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 71, 87, 0.5);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+
+/* ===== CONTENT GRID ===== */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 0 24px 16px;
+}
+
+.content-section {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 20px;
+  backdrop-filter: blur(15px);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f0e6c8;
+}
+
+.section-more {
+  font-size: 12px;
+  color: rgba(200, 210, 240, 0.5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.3s;
+}
+
+.section-more:hover {
+  color: var(--blue-glow);
+}
+
+/* Realm Cards */
+.realm-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.realm-card {
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.realm-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.realm-card-img {
+  width: 100%;
+  height: 120px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.realm-card-img::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  background: linear-gradient(transparent, rgba(10, 14, 42, 0.8));
+}
+
+.realm-img-1 {
+  background: linear-gradient(135deg, #1a3a6a, #2a5090);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.realm-img-2 {
+  background: linear-gradient(135deg, #4a3020, #8a5530);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.realm-img-3 {
+  background: linear-gradient(135deg, #2a1a4a, #5a3a8a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.realm-img-inner {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.realm-card-info {
+  padding: 8px;
+  background: rgba(15, 20, 50, 0.6);
+}
+
+.realm-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.realm-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  font-size: 12px;
+  color: var(--gold);
+}
+
+.star.empty {
+  color: rgba(200, 210, 240, 0.2);
+}
+
+/* Rankings */
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.ranking-item:hover {
+  background: rgba(74, 138, 255, 0.08);
+}
+
+.rank-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.rank-1 {
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+.rank-2 {
+  background: linear-gradient(135deg, #c0c0c0, #808080);
+  color: #fff;
+}
+
+.rank-3 {
+  background: linear-gradient(135deg, #cd7f32, #8b4513);
+  color: #fff;
+}
+
+.rank-normal {
+  background: rgba(100, 140, 200, 0.15);
+  color: rgba(200, 210, 240, 0.5);
+}
+
+.rank-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3a5cc4, #5a3a8a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  border: 2px solid rgba(200, 210, 240, 0.15);
+  flex-shrink: 0;
+}
+
+.rank-1 + .rank-avatar {
+  border-color: var(--gold);
+}
+
+.rank-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.rank-power {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Noto Serif SC', serif;
+}
+
+.rank-power.gold { color: var(--gold-light); }
+.rank-power.silver { color: #c0c0c0; }
+.rank-power.bronze { color: #cd9f6f; }
+
+.rank-trend {
+  font-size: 12px;
+  color: #4caf50;
+}
+
+/* ===== BOTTOM CONTENT ===== */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 0 24px 16px;
+}
+
+/* Event Section */
+.event-banner {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  height: 160px;
+  background: linear-gradient(135deg, rgba(20, 30, 80, 0.8), rgba(30, 20, 60, 0.8));
+  display: flex;
+  align-items: center;
+  padding: 24px;
+  margin-top: 8px;
+}
+
+.event-bg-effect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at 70% 50%, rgba(100, 140, 255, 0.1), transparent 60%);
+}
+
+.event-character {
+  position: absolute;
+  right: 20px;
+  bottom: 0;
+  font-size: 100px;
+  opacity: 0.2;
+}
+
+.event-content {
+  position: relative;
+  z-index: 2;
+}
+
+.event-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 28px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #f0d68a, #c9a84c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 4px;
+}
+
+.event-time {
+  font-size: 12px;
+  color: rgba(200, 210, 240, 0.5);
+  margin-bottom: 12px;
+}
+
+.event-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  border: none;
+  border-radius: 20px;
+  color: #1a1a2e;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+}
+
+.event-btn::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
+  animation: btnShine 3s ease-in-out infinite;
+}
+
+@keyframes btnShine {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
+}
+
+.event-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.5);
+}
+
+.event-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.event-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(200, 210, 240, 0.3);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.event-dot.active {
+  background: var(--gold);
+  width: 18px;
+  border-radius: 3px;
+}
+
+/* Cultivation Section */
+.cultivation-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(15, 20, 50, 0.4);
+  border-radius: 12px;
+  margin-top: 8px;
+}
+
+.cultivation-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74, 138, 255, 0.2), transparent);
+  border: 2px solid rgba(74, 138, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+  animation: cultivationPulse 3s ease-in-out infinite;
+}
+
+@keyframes cultivationPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(74, 138, 255, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(74, 138, 255, 0.4); border-color: rgba(74, 138, 255, 0.6); }
+}
+
+.cultivation-info {
+  flex: 1;
+}
+
+.cultivation-rank {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold-light);
+  margin-bottom: 8px;
+}
+
+.cultivation-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(74, 138, 255, 0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 60%;
+  background: linear-gradient(90deg, var(--blue-glow), var(--cyan-glow));
+  border-radius: 3px;
+  position: relative;
+  transition: width 1s ease;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5));
+  animation: progressShine 2s ease-in-out infinite;
+}
+
+@keyframes progressShine {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+.progress-text {
+  font-size: 11px;
+  color: rgba(200, 210, 240, 0.5);
+  white-space: nowrap;
+}
+
+.cultivation-rate {
+  font-size: 12px;
+  color: rgba(200, 210, 240, 0.5);
+}
+
+.cultivation-rate span {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.breakthrough-btn {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  border: none;
+  border-radius: 20px;
+  color: #1a1a2e;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.breakthrough-btn::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-light));
+  z-index: -1;
+  animation: btnBorderGlow 2s ease-in-out infinite;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.breakthrough-btn:hover::after {
+  opacity: 1;
+}
+
+.breakthrough-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(201, 168, 76, 0.5);
+}
+
+@keyframes btnBorderGlow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 72px;
+  right: 0;
+  height: 64px;
+  background: linear-gradient(180deg, rgba(10, 14, 42, 0.9), rgba(10, 14, 42, 0.98));
+  border-top: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 100;
+  padding: 0 20%;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 8px 16px;
+  position: relative;
+}
+
+.bottom-nav-item:hover {
+  transform: translateY(-2px);
+}
+
+.bottom-nav-item.center {
+  margin-top: -20px;
+}
+
+.bottom-nav-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.bottom-nav-item.center .bottom-nav-icon {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.4);
+  border: 3px solid rgba(10, 14, 42, 0.8);
+  animation: centerBtnGlow 3s ease-in-out infinite;
+}
+
+@keyframes centerBtnGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(201, 168, 76, 0.4); }
+  50% { box-shadow: 0 0 35px rgba(201, 168, 76, 0.7); }
+}
+
+.bottom-nav-label {
+  font-size: 10px;
+  color: rgba(200, 210, 240, 0.5);
+}
+
+.bottom-nav-item.active .bottom-nav-label {
+  color: var(--gold-light);
+}
+
+/* ===== TOOLTIP / MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: linear-gradient(135deg, rgba(15, 25, 65, 0.95), rgba(20, 30, 80, 0.95));
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 500px;
+  width: 90%;
+  backdrop-filter: blur(20px);
+  animation: modalSlideUp 0.4s ease;
+  position: relative;
+}
+
+@keyframes modalSlideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 20px;
+  cursor: pointer;
+  color: rgba(200, 210, 240, 0.5);
+  transition: color 0.3s;
+  background: none;
+  border: none;
+}
+
+.modal-close:hover {
+  color: #fff;
+}
+
+.modal-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 24px;
+  color: var(--gold-light);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.modal-body {
+  text-align: center;
+  color: rgba(200, 210, 240, 0.7);
+  line-height: 1.8;
+}
+
+.modal-btn {
+  display: inline-flex;
+  margin-top: 20px;
+  padding: 10px 32px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  border: none;
+  border-radius: 25px;
+  color: #1a1a2e;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.3s;
+}
+
+.modal-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.5);
+}
+
+/* ===== NOTIFICATIONS ===== */
+.notification-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, rgba(15, 25, 65, 0.95), rgba(20, 30, 80, 0.95));
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: toastSlide 0.4s ease, toastFade 0.4s ease 3s forwards;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  min-width: 250px;
+}
+
+@keyframes toastSlide {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toastFade {
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+.toast-icon {
+  font-size: 20px;
+}
+
+.toast-text {
+  font-size: 13px;
+  color: rgba(200, 210, 240, 0.9);
+}
+
+/* ===== ENERGY ORB DECORATIONS ===== */
+.energy-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.orb-1 {
+  width: 200px;
+  height: 200px;
+  bottom: 10%;
+  left: -5%;
+  background: radial-gradient(circle, rgba(74, 138, 255, 0.08), transparent 70%);
+  animation: orbPulse 5s ease-in-out infinite;
+}
+
+.orb-2 {
+  width: 150px;
+  height: 150px;
+  top: 30%;
+  right: -3%;
+  background: radial-gradient(circle, rgba(138, 109, 255, 0.06), transparent 70%);
+  animation: orbPulse 7s ease-in-out infinite reverse;
+}
+
+@keyframes orbPulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(10, 14, 42, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(74, 138, 255, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(74, 138, 255, 0.5);
+}
+
+/* Main scroll area */
+.scroll-area {
+  padding-bottom: 80px;
+  overflow-y: auto;
+  max-height: 100vh;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .nav-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .content-grid, .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-character-placeholder {
+    opacity: 0.3;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+  .main-content {
+    margin-left: 0;
+  }
+  .bottom-nav {
+    left: 0;
+    padding: 0 5%;
+  }
+  .hero-title {
+    font-size: 36px;
+  }
+  .realm-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== CLICK RIPPLE ===== */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 168, 76, 0.4), transparent 70%);
+  pointer-events: none;
+  animation: rippleAnim 0.6s ease-out forwards;
+}
+
+@keyframes rippleAnim {
+  0% { width: 0; height: 0; opacity: 1; }
+  100% { width: 150px; height: 150px; opacity: 0; margin-top: -75px; margin-left: -75px; }
+}
+
+/* Glow effect for interactive elements */
+.glow-hover {
+  transition: all 0.3s ease;
+}
+
+.glow-hover:hover {
+  text-shadow: 0 0 10px currentColor;
+}
+
+/* Loading shimmer for images */
+.shimmer {
+  background: linear-gradient(90deg, rgba(30, 40, 80, 0.5) 25%, rgba(50, 60, 100, 0.5) 50%, rgba(30, 40, 80, 0.5) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Floating animation for decorative elements */
+.float-anim {
+  animation: floatUpDown 4s ease-in-out infinite;
+}
+
+@keyframes floatUpDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Sparkle effect */
+.sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--gold-light);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: sparkleAnim 1s ease-out forwards;
+}
+
+@keyframes sparkleAnim {
+  0% { transform: scale(0) rotate(0deg); opacity: 1; }
+  50% { transform: scale(1.5) rotate(180deg); opacity: 0.8; }
+  100% { transform: scale(0) rotate(360deg); opacity: 0; }
 }
 </style>
 </head>
 <body>
 
-<canvas id="three-bg"></canvas>
-<div class="bg-overlay"></div>
-<div class="moon-wrap" id="moonWrap"><div class="moon"></div></div>
-<div class="cloud-layer"><div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div></div>
+<!-- Three.js Canvas -->
+<canvas id="three-canvas"></canvas>
 
+<!-- Parallax Background -->
+<div id="parallax-bg">
+  <div class="parallax-layer" data-depth="0.02">
+    <div class="bg-gradient"></div>
+  </div>
+  <div class="parallax-layer" data-depth="0.05">
+    <div class="moon"></div>
+  </div>
+  <div class="parallax-layer" data-depth="0.03">
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <div class="cloud cloud-3"></div>
+  </div>
+  <div class="parallax-layer" data-depth="0.01">
+    <div class="golden-particles" id="goldenParticles"></div>
+  </div>
+  <div class="energy-orb orb-1"></div>
+  <div class="energy-orb orb-2"></div>
+</div>
+
+<!-- Main App -->
 <div id="app">
+  <!-- Left Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="lotus-icon">🪷</span>
+    </div>
 
-<!-- 侧边栏 -->
-<nav class="sidebar" id="sidebar">
-  <div class="sidebar-logo"><svg class="lotus-svg" width="36" height="36" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="rgba(201,168,76,0.3)" stroke-width="1.5"/><circle cx="50" cy="50" r="35" fill="none" stroke="rgba(201,168,76,0.2)" stroke-width="1"/><text x="50" y="58" text-anchor="middle" font-size="30" fill="rgba(201,168,76,0.8)">☸</text></svg></div>
-  <div class="sb-item active" onclick="sbClick(this,'首页')"><span class="sb-icon">🏠</span><span class="sb-label">首页</span></div>
-  <div class="sb-item" onclick="sbClick(this,'探索')"><span class="sb-icon">🔍</span><span class="sb-label">探索</span></div>
-  <div class="sb-item" onclick="sbClick(this,'任务')"><span class="sb-icon">📋</span><span class="sb-label">任务</span></div>
-  <div class="sb-item" onclick="sbClick(this,'仙缘')"><span class="sb-icon">💫</span><span class="sb-label">仙缘</span></div>
-  <div class="sb-item" onclick="sbClick(this,'商城')"><span class="sb-icon">🏪</span><span class="sb-label">商城</span></div>
-  <div class="sb-item" onclick="sbClick(this,'排行')"><span class="sb-icon">📊</span><span class="sb-label">排行</span></div>
-  <div class="sb-item" onclick="sbClick(this,'活动')"><span class="sb-icon">🎪</span><span class="sb-label">活动</span></div>
-  <div class="sb-toggle" onclick="toggleSb()">»</div>
+    <div class="sidebar-item active" data-page="home" onclick="switchPage(this, 'home')">
+      <span class="sidebar-icon">🏠</span>
+      <span class="sidebar-label">首页</span>
+    </div>
+    <div class="sidebar-item" data-page="explore" onclick="switchPage(this, 'explore')">
+      <span class="sidebar-icon">🔍</span>
+      <span class="sidebar-label">探索</span>
+    </div>
+    <div class="sidebar-item" data-page="quests" onclick="switchPage(this, 'quests')">
+      <span class="sidebar-icon">📋</span>
+      <span class="sidebar-label">任务</span>
+    </div>
+    <div class="sidebar-item" data-page="destiny" onclick="switchPage(this, 'destiny')">
+      <span class="sidebar-icon">💫</span>
+      <span class="sidebar-label">仙缘</span>
+    </div>
+    <div class="sidebar-item" data-page="shop" onclick="switchPage(this, 'shop')">
+      <span class="sidebar-icon">🏪</span>
+      <span class="sidebar-label">商城</span>
+    </div>
+    <div class="sidebar-item" data-page="ranking" onclick="switchPage(this, 'ranking')">
+      <span class="sidebar-icon">📊</span>
+      <span class="sidebar-label">排行</span>
+    </div>
+    <div class="sidebar-item" data-page="events" onclick="switchPage(this, 'events')">
+      <span class="sidebar-icon">🎪</span>
+      <span class="sidebar-label">活动</span>
+    </div>
+
+    <div class="sidebar-collapse" onclick="toggleSidebar()">
+      <span>»</span>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="scroll-area" id="scrollArea">
+      <!-- Hero Section -->
+      <section class="hero-section" id="heroSection">
+        <div class="hero-bg"></div>
+        
+        <!-- Character placeholder with hair & ribbon effects -->
+        <div class="hero-character-placeholder" id="characterArea">
+          <div class="character-silhouette">
+            <div class="char-body"></div>
+            <div class="char-hair" id="charHair"></div>
+            <!-- Ribbons -->
+            <div class="ribbon" id="ribbon1" style="top:35%;left:60%;width:120px;background:linear-gradient(90deg,rgba(80,140,255,0.4),rgba(80,140,255,0.1),transparent);"></div>
+            <div class="ribbon" id="ribbon2" style="top:45%;left:55%;width:150px;background:linear-gradient(90deg,rgba(100,160,255,0.3),rgba(100,160,255,0.1),transparent);animation-delay:-1.5s;"></div>
+            <div class="ribbon" id="ribbon3" style="top:50%;left:70%;width:100px;background:linear-gradient(90deg,rgba(120,180,255,0.35),rgba(120,180,255,0.1),transparent);animation-delay:-2.8s;"></div>
+            <div class="ribbon" id="ribbon4" style="top:30%;left:40%;width:80px;background:linear-gradient(90deg,transparent,rgba(200,180,120,0.3),rgba(200,180,120,0.1));animation-delay:-0.7s;"></div>
+          </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+          <span class="status-time" id="statusTime">19:30</span>
+          <span class="status-weather">☁ 晴 26°C</span>
+          <div class="user-profile" onclick="openModal('profile')">
+            <div class="user-avatar">👸</div>
+            <div class="user-info">
+              <span class="user-name">凌霄仙子</span>
+              <div class="user-vip">
+                <span class="vip-badge">尊贵VIP</span>
+                <span class="user-level">Lv.88</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Content -->
+        <div class="hero-content">
+          <div class="hero-badge">🔥 巅峰</div>
+          <h1 class="hero-title">天宫秘境</h1>
+          <p class="hero-subtitle">探 索 东 方 仙 侠 世 界</p>
+        </div>
+      </section>
+
+      <!-- Search Section -->
+      <div class="search-section">
+        <div class="search-bar">
+          <input type="text" placeholder="搜索秘境 / 任务 / 仙缘" id="searchInput">
+          <button class="search-btn" onclick="handleSearch()">🔍</button>
+        </div>
+      </div>
+
+      <!-- Navigation Cards -->
+      <div class="nav-cards">
+        <div class="nav-card" onclick="handleNavClick('秘境探索')">
+          <div class="nav-card-icon">🏛️</div>
+          <div class="nav-card-text">
+            <h4>秘境探索</h4>
+            <p>探索未知秘境</p>
+          </div>
+        </div>
+        <div class="nav-card" onclick="handleNavClick('每日任务')">
+          <div class="nav-card-icon">📜</div>
+          <div class="nav-card-text">
+            <h4>每日任务</h4>
+            <p>完成得仙缘奖动</p>
+          </div>
+        </div>
+        <div class="nav-card" onclick="handleNavClick('仙缘奇遇')">
+          <div class="nav-card-icon">🪷</div>
+          <div class="nav-card-text">
+            <h4>仙缘奇遇</h4>
+            <p>邂逅命中之缘</p>
+          </div>
+          <div class="notification-dot"></div>
+        </div>
+        <div class="nav-card" onclick="handleNavClick('天宫商城')">
+          <div class="nav-card-icon">💰</div>
+          <div class="nav-card-text">
+            <h4>天宫商城</h4>
+            <p>珍稀道具兑换</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Grid -->
+      <div class="content-grid">
+        <!-- Recommended Realms -->
+        <div class="content-section">
+          <div class="section-header">
+            <h3 class="section-title">推荐秘境</h3>
+            <span class="section-more" onclick="showToast('正在加载更多秘境...')">查看更多 ›</span>
+          </div>
+          <div class="realm-grid">
+            <div class="realm-card" onclick="openModal('realm', '月下瑶池')">
+              <div class="realm-card-img realm-img-1">
+                <span class="realm-img-inner">🌙</span>
+              </div>
+              <div class="realm-card-info">
+                <div class="realm-card-name">月下瑶池</div>
+                <div class="realm-stars">
+                  <span class="star">★</span>
+                  <span class="star">★</span>
+                  <span class="star">★</span>
+                  <span class="star">★</span>
+                  <span class="star">★</span>
+                </div>
+              </div>
+            </div>
+            <div class="realm-card" onclick="openModal('realm', '九重天阙')">
+              <div class="realm-card-img realm-img-2">
+                <span class="realm-img-inner">🏯</span>
+              </div>
+              <div class="realm-card-info">
+                <div class="realm-card-name">九重天阙</div>
+                <div class="realm-stars">
+                  <span class="star">★</span>
+                  <span class="star">★</span>
+                  <span class="star">★</span>
+                  <span class="star">★</span>
+                  <span class="star empty">★</span>
+                </div>
+              </div>
+            </div>
+            <div class="realm-card" onclick="openModal('realm', '星河幻境')">
+              <div class="realm-card-img realm-img-3">
+                <span class="realm-img-inner">🌌</span>
+              </div>
+              <div class="realm-card-info">
+                <div class="realm-card-name">星河幻境</div>
+                <div class="realm-stars">
+                  <span class="star">★</span>
+                  <span class="star">★</span>
+                  <span class="star">★</span>
+                  <span class="star">★</span>
+                  <span class="star">★</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rankings -->
+        <div class="content-section">
+          <div class="section-header">
+            <h3 class="section-title">战力排行</h3>
+            <span class="section-more" onclick="showToast('正在加载完整排行榜...')">查看更多 ›</span>
+          </div>
+          <div class="ranking-list">
+            <div class="ranking-item" onclick="openModal('player', '凌霄仙子')">
+              <div class="rank-badge rank-1">1</div>
+              <div class="rank-avatar" style="border-color: var(--gold);">👸</div>
+              <span class="rank-name">凌霄仙子</span>
+              <span class="rank-power gold">999999</span>
+              <span class="rank-trend">↑</span>
+            </div>
+            <div class="ranking-item" onclick="openModal('player', '广寒仙子')">
+              <div class="rank-badge rank-2">2</div>
+              <div class="rank-avatar">🧝‍♀️</div>
+              <span class="rank-name">广寒仙子</span>
+              <span class="rank-power silver">888888</span>
+              <span class="rank-trend">↑</span>
+            </div>
+            <div class="ranking-item" onclick="openModal('player', '紫微大帝')">
+              <div class="rank-badge rank-3">3</div>
+              <div class="rank-avatar">🧙‍♂️</div>
+              <span class="rank-name">紫微大帝</span>
+              <span class="rank-power bronze">777777</span>
+              <span class="rank-trend">↑</span>
+            </div>
+            <div class="ranking-item" onclick="openModal('player', '青鸾仙子')">
+              <div class="rank-badge rank-normal">4</div>
+              <div class="rank-avatar">🧚</div>
+              <span class="rank-name">青鸾仙子</span>
+              <span class="rank-power" style="color: rgba(200,210,240,0.7);">666666</span>
+              <span class="rank-trend">↑</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Content Grid -->
+      <div class="bottom-grid">
+        <!-- Limited Events -->
+        <div class="content-section">
+          <div class="section-header">
+            <h3 class="section-title">限时活动</h3>
+            <span class="section-more" onclick="showToast('查看全部活动...')">查看更多 ›</span>
+          </div>
+          <div class="event-banner">
+            <div class="event-bg-effect"></div>
+            <div class="event-character">🧝‍♀️</div>
+            <div class="event-content">
+              <h3 class="event-title">天宫盛典</h3>
+              <p class="event-time">活动剩余时间：2天12小时</p>
+              <button class="event-btn" onclick="handleEventJoin()">
+                立即参与
+              </button>
+              <div class="event-dots">
+                <div class="event-dot active"></div>
+                <div class="event-dot"></div>
+                <div class="event-dot"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- My Cultivation -->
+        <div class="content-section">
+          <div class="section-header">
+            <h3 class="section-title">我的修为</h3>
+          </div>
+          <div class="cultivation-card">
+            <div class="cultivation-icon float-anim">🪷</div>
+            <div class="cultivation-info">
+              <div class="cultivation-rank">化神期 · 九重</div>
+              <div class="cultivation-progress">
+                <div class="progress-bar">
+                  <div class="progress-fill" id="cultivationProgress" style="width: 60%;"></div>
+                </div>
+                <span class="progress-text">12000/20000</span>
+              </div>
+              <div class="cultivation-rate">修为 <span>+120/小时</span></div>
+            </div>
+            <button class="breakthrough-btn" onclick="handleBreakthrough()">突破境界</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-item active" onclick="switchBottomNav(this, '角色')">
+    <span class="bottom-nav-icon">🧝</span>
+    <span class="bottom-nav-label">角色</span>
+  </div>
+  <div class="bottom-nav-item" onclick="switchBottomNav(this, '法宝')">
+    <span class="bottom-nav-icon">⚔️</span>
+    <span class="bottom-nav-label">法宝</span>
+  </div>
+  <div class="bottom-nav-item center" onclick="switchBottomNav(this, '功法')">
+    <span class="bottom-nav-icon">🪷</span>
+    <span class="bottom-nav-label">功法</span>
+  </div>
+  <div class="bottom-nav-item" onclick="switchBottomNav(this, '功法书')">
+    <span class="bottom-nav-icon">📖</span>
+    <span class="bottom-nav-label">功法</span>
+  </div>
+  <div class="bottom-nav-item" onclick="switchBottomNav(this, '设置')">
+    <span class="bottom-nav-icon">⚙️</span>
+    <span class="bottom-nav-label">设置</span>
+  </div>
 </nav>
 
-<!-- 主内容 -->
-<main class="main" id="mainArea">
-<div class="scroll-wrap">
-
-<!-- 英雄区 -->
-<section class="hero">
-  <div class="hero-inner">
-    <!-- 角色 -->
-    <div class="char-area" id="charArea">
-      <div class="char-glow"></div>
-      <div class="char-silhouette"></div>
-      <div class="hair-wrap" id="hairWrap"></div>
-      <div class="ribbon r1"></div><div class="ribbon r2"></div><div class="ribbon r3"></div><div class="ribbon r4"></div><div class="ribbon r5"></div>
-    </div>
-    <!-- 状态 -->
-    <div class="top-bar">
-      <div class="time-w"><span id="clock">19:30</span><span>☁ 晴 26°C</span></div>
-      <div class="user-card" onclick="openModal('profile')">
-        <div class="avatar">👸</div>
-        <div><div class="u-name">凌霄仙子</div><div class="u-vip"><span class="vip-b">尊贵VIP</span><span class="u-lv">Lv.88</span></div></div>
-      </div>
-    </div>
-    <!-- 标题 -->
-    <div class="hero-text" id="heroText">
-      <div class="badge">🔥 巅峰</div>
-      <h1 class="hero-title">天宫秘境</h1>
-      <p class="hero-sub">探 索 东 方 仙 侠 世 界</p>
-    </div>
-  </div>
-</section>
-
-<!-- 搜索 -->
-<div class="search-wrap">
-  <div class="search-bar">
-    <input type="text" placeholder="搜索秘境 / 任务 / 仙缘" id="searchIn">
-    <button class="search-btn" onclick="doSearch()">🔍</button>
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal-content" id="modalContent">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 class="modal-title" id="modalTitle">标题</h3>
+    <div class="modal-body" id="modalBody">内容</div>
   </div>
 </div>
 
-<!-- 导航卡 -->
-<div class="nav-row">
-  <div class="nav-card" onclick="navGo('秘境探索')"><div class="nc-icon">🏛️</div><div class="nc-text"><h4>秘境探索</h4><p>探索未知秘境</p></div></div>
-  <div class="nav-card" onclick="navGo('每日任务')"><div class="nc-icon">📜</div><div class="nc-text"><h4>每日任务</h4><p>完成得仙缘奖励</p></div></div>
-  <div class="nav-card" onclick="navGo('仙缘奇遇')"><div class="nc-icon">🪷</div><div class="nc-text"><h4>仙缘奇遇</h4><p>邂逅命中之缘</p></div><div class="notif-dot"></div></div>
-  <div class="nav-card" onclick="navGo('天宫商城')"><div class="nc-icon">💰</div><div class="nc-text"><h4>天宫商城</h4><p>珍稀道具兑换</p></div></div>
-</div>
-
-<!-- 内容双栏 -->
-<div class="grid-2">
-  <!-- 推荐秘境 -->
-  <div class="card">
-    <div class="sec-head"><h3 class="sec-title">推荐秘境</h3><span class="sec-more" onclick="toast('正在加载更多秘境…')">查看更多 ›</span></div>
-    <div class="realm-row">
-      <div class="realm" onclick="openModal('realm','月下瑶池')">
-        <div class="realm-img ri-1"><span>🌙</span></div>
-        <div class="realm-info"><div class="realm-name">月下瑶池</div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div></div>
-      </div>
-      <div class="realm" onclick="openModal('realm','九重天阙')">
-        <div class="realm-img ri-2"><span>🏯</span></div>
-        <div class="realm-info"><div class="realm-name">九重天阙</div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span class="empty">★</span></div></div>
-      </div>
-      <div class="realm" onclick="openModal('realm','星河幻境')">
-        <div class="realm-img ri-3"><span>🌌</span></div>
-        <div class="realm-info"><div class="realm-name">星河幻境</div><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div></div>
-      </div>
-    </div>
-  </div>
-  <!-- 战力排行 -->
-  <div class="card">
-    <div class="sec-head"><h3 class="sec-title">战力排行</h3><span class="sec-more" onclick="toast('正在加载排行榜…')">查看更多 ›</span></div>
-    <div class="rank-list">
-      <div class="rank-item" onclick="openModal('player','凌霄仙子')"><div class="rank-b rb-1">1</div><div class="rank-av">👸</div><span class="rk-name">凌霄仙子</span><span class="rk-pw g">999999</span><span class="rk-trend">↑</span></div>
-      <div class="rank-item" onclick="openModal('player','广寒仙子')"><div class="rank-b rb-2">2</div><div class="rank-av">🧝‍♀️</div><span class="rk-name">广寒仙子</span><span class="rk-pw s">888888</span><span class="rk-trend">↑</span></div>
-      <div class="rank-item" onclick="openModal('player','紫微大帝')"><div class="rank-b rb-3">3</div><div class="rank-av">🧙‍♂️</div><span class="rk-name">紫微大帝</span><span class="rk-pw br">777777</span><span class="rk-trend">↑</span></div>
-      <div class="rank-item" onclick="openModal('player','青鸾仙子')"><div class="rank-b rb-n">4</div><div class="rank-av">🧚</div><span class="rk-name">青鸾仙子</span><span class="rk-pw" style="color:rgba(195,205,230,0.65)">666666</span><span class="rk-trend">↑</span></div>
-    </div>
-  </div>
-</div>
-
-<!-- 下方双栏 -->
-<div class="grid-2">
-  <!-- 限时活动 -->
-  <div class="card">
-    <div class="sec-head"><h3 class="sec-title">限时活动</h3><span class="sec-more" onclick="toast('查看全部活动…')">查看更多 ›</span></div>
-    <div class="event-banner">
-      <div class="event-glow"></div>
-      <div class="event-char">🧝‍♀️</div>
-      <div class="ev-content">
-        <h3 class="ev-title">天宫盛典</h3>
-        <p class="ev-time">活动剩余时间：<span id="evTimer">2天12小时</span></p>
-        <button class="glow-btn" onclick="joinEvent()">立即参与</button>
-        <div class="ev-dots"><div class="ev-dot active" onclick="switchDot(0)"></div><div class="ev-dot" onclick="switchDot(1)"></div><div class="ev-dot" onclick="switchDot(2)"></div></div>
-      </div>
-    </div>
-  </div>
-  <!-- 修为 -->
-  <div class="card">
-    <div class="sec-head"><h3 class="sec-title">我的修为</h3></div>
-    <div class="cult-card">
-      <div class="cult-icon" style="animation-delay:-.5s">🪷</div>
-      <div class="cult-info">
-        <div class="cult-rank" id="cultRank">化神期 · 九重</div>
-        <div class="prog-row"><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:60%"></div></div><span class="prog-text" id="progTxt">12000/20000</span></div>
-        <div class="cult-rate">修为 <em>+120/小时</em></div>
-      </div>
-      <button class="break-btn" onclick="doBreak()">突破境界</button>
-    </div>
-  </div>
-</div>
-
-</div><!-- scroll-wrap -->
-</main>
-</div><!-- app -->
-
-<!-- 底部导航 -->
-<nav class="bot-nav" id="botNav">
-  <div class="bn-item active" onclick="bnClick(this,'角色')"><span class="bn-icon">🧝</span><span class="bn-label">角色</span></div>
-  <div class="bn-item" onclick="bnClick(this,'法宝')"><span class="bn-icon">⚔️</span><span class="bn-label">法宝</span></div>
-  <div class="bn-item center" onclick="bnClick(this,'功法')"><span class="bn-icon">🪷</span><span class="bn-label">功法</span></div>
-  <div class="bn-item" onclick="bnClick(this,'修炼')"><span class="bn-icon">📖</span><span class="bn-label">功法</span></div>
-  <div class="bn-item" onclick="bnClick(this,'设置')"><span class="bn-icon">⚙️</span><span class="bn-label">设置</span></div>
-</nav>
-
-<!-- 弹窗 -->
-<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
-  <div class="modal"><button class="modal-x" onclick="closeModal()">✕</button><h3 id="mTitle"></h3><div class="modal-body" id="mBody"></div></div>
-</div>
-
-<!-- Toast -->
-<div class="toast-wrap" id="toastBox"></div>
+<!-- Toast Container -->
+<div class="notification-toast" id="toastContainer"></div>
 
 <script>
-// ============================
-//  THREE.JS — 仙云粒子系统
-// ============================
-(function(){
-const cv=document.getElementById('three-bg');
-const W=()=>window.innerWidth,H=()=>window.innerHeight;
-const renderer=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true});
-renderer.setSize(W(),H());renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+// ===========================
+// THREE.JS PARTICLE SYSTEM
+// ===========================
+const canvas = document.getElementById('three-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-const scene=new THREE.Scene();
-const cam=new THREE.PerspectiveCamera(55,W()/H(),0.1,800);
-cam.position.z=50;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.z = 50;
 
-const N=1500;
-const pos=new Float32Array(N*3),col=new Float32Array(N*3),sz=new Float32Array(N);
-const vel=[];
-for(let i=0;i<N;i++){
-  pos[i*3]=(Math.random()-.5)*110;
-  pos[i*3+1]=(Math.random()-.5)*75;
-  pos[i*3+2]=(Math.random()-.5)*55;
-  const r=Math.random();
-  if(r<.3){col[i*3]=.92;col[i*3+1]=.78;col[i*3+2]=.35}
-  else if(r<.65){col[i*3]=.32;col[i*3+1]=.55;col[i*3+2]=.95}
-  else{col[i*3]=.22;col[i*3+1]=.75;col[i*3+2]=.95}
-  sz[i]=Math.random()*2.2+.4;
-  vel.push({x:(Math.random()-.5)*.018,y:Math.random()*.018+.004,z:(Math.random()-.5)*.008,p:Math.random()*6.28});
-}
-const geo=new THREE.BufferGeometry();
-geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
-geo.setAttribute('color',new THREE.BufferAttribute(col,3));
-geo.setAttribute('size',new THREE.BufferAttribute(sz,1));
+// Cloud/Fairy Particles
+const particleCount = 2000;
+const positions = new Float32Array(particleCount * 3);
+const colors = new Float32Array(particleCount * 3);
+const sizes = new Float32Array(particleCount);
+const velocities = [];
 
-const vs=`attribute float size;varying vec3 vC;varying float vA;
-void main(){vC=color;vec4 mv=modelViewMatrix*vec4(position,1.);
-gl_PointSize=size*(280./-mv.z);gl_Position=projectionMatrix*mv;
-vA=smoothstep(90.,8.,-mv.z);}`;
-const fs=`varying vec3 vC;varying float vA;
-void main(){float d=length(gl_PointCoord-vec2(.5));
-if(d>.5)discard;float a=smoothstep(.5,.08,d)*vA*.55;
-gl_FragColor=vec4(vC,a);}`;
-
-const mat=new THREE.ShaderMaterial({vertexShader:vs,fragmentShader:fs,transparent:true,vertexColors:true,depthWrite:false,blending:THREE.AdditiveBlending});
-const pts=new THREE.Points(geo,mat);
-scene.add(pts);
-
-let mx=0,my=0,tmx=0,tmy=0,t=0;
-document.addEventListener('mousemove',e=>{tmx=(e.clientX/W()-.5)*2;tmy=(e.clientY/H()-.5)*2});
-document.addEventListener('touchmove',e=>{const tc=e.touches[0];tmx=(tc.clientX/W()-.5)*2;tmy=(tc.clientY/H()-.5)*2},{passive:true});
-
-function loop(){
-  requestAnimationFrame(loop);t+=.004;
-  mx+=(tmx-mx)*.04;my+=(tmy-my)*.04;
-  const p=geo.attributes.position.array;
-  for(let i=0;i<N;i++){
-    const v=vel[i];
-    p[i*3]+=v.x+Math.sin(t+v.p)*.008;
-    p[i*3+1]+=v.y;
-    p[i*3+2]+=v.z+Math.cos(t+v.p)*.004;
-    if(p[i*3+1]>40){p[i*3+1]=-40;p[i*3]=(Math.random()-.5)*110;p[i*3+2]=(Math.random()-.5)*55}
-    if(p[i*3]>60)p[i*3]=-60;if(p[i*3]<-60)p[i*3]=60;
+for (let i = 0; i < particleCount; i++) {
+  positions[i * 3] = (Math.random() - 0.5) * 120;
+  positions[i * 3 + 1] = (Math.random() - 0.5) * 80;
+  positions[i * 3 + 2] = (Math.random() - 0.5) * 60;
+  
+  // Colors: mix of gold, blue, cyan
+  const colorChoice = Math.random();
+  if (colorChoice < 0.3) {
+    // Gold
+    colors[i * 3] = 0.9 + Math.random() * 0.1;
+    colors[i * 3 + 1] = 0.75 + Math.random() * 0.15;
+    colors[i * 3 + 2] = 0.3 + Math.random() * 0.2;
+  } else if (colorChoice < 0.7) {
+    // Blue
+    colors[i * 3] = 0.3 + Math.random() * 0.2;
+    colors[i * 3 + 1] = 0.5 + Math.random() * 0.2;
+    colors[i * 3 + 2] = 0.9 + Math.random() * 0.1;
+  } else {
+    // Cyan
+    colors[i * 3] = 0.2 + Math.random() * 0.1;
+    colors[i * 3 + 1] = 0.7 + Math.random() * 0.2;
+    colors[i * 3 + 2] = 0.9 + Math.random() * 0.1;
   }
-  geo.attributes.position.needsUpdate=true;
-  cam.position.x+=(mx*2.5-cam.position.x)*.018;
-  cam.position.y+=(-my*1.8-cam.position.y)*.018;
-  cam.lookAt(0,0,0);
-  pts.rotation.y=t*.04+mx*.08;
-  pts.rotation.x=Math.sin(t*.25)*.04+my*.04;
-  renderer.render(scene,cam);
+  
+  sizes[i] = Math.random() * 2.5 + 0.5;
+  
+  velocities.push({
+    x: (Math.random() - 0.5) * 0.02,
+    y: Math.random() * 0.02 + 0.005,
+    z: (Math.random() - 0.5) * 0.01,
+    phase: Math.random() * Math.PI * 2
+  });
 }
-loop();
 
-window.addEventListener('resize',()=>{cam.aspect=W()/H();cam.updateProjectionMatrix();renderer.setSize(W(),H())});
-})();
+const geometry = new THREE.BufferGeometry();
+geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-// ============================
-//  视差效果
-// ============================
-let pmx=0,pmy=0;
-document.addEventListener('mousemove',e=>{
-  pmx=(e.clientX/innerWidth-.5);pmy=(e.clientY/innerHeight-.5);
+// Custom shader for soft glowing particles
+const vertexShader = `
+  attribute float size;
+  varying vec3 vColor;
+  varying float vAlpha;
+  void main() {
+    vColor = color;
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    gl_PointSize = size * (300.0 / -mvPosition.z);
+    gl_Position = projectionMatrix * mvPosition;
+    vAlpha = smoothstep(100.0, 10.0, -mvPosition.z);
+  }
+`;
+
+const fragmentShader = `
+  varying vec3 vColor;
+  varying float vAlpha;
+  void main() {
+    float dist = length(gl_PointCoord - vec2(0.5));
+    if (dist > 0.5) discard;
+    float alpha = smoothstep(0.5, 0.1, dist) * vAlpha * 0.6;
+    gl_FragColor = vec4(vColor, alpha);
+  }
+`;
+
+const material = new THREE.ShaderMaterial({
+  vertexShader,
+  fragmentShader,
+  transparent: true,
+  vertexColors: true,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending
 });
-function parallaxLoop(){
-  requestAnimationFrame(parallaxLoop);
-  const m=document.getElementById('moonWrap');
-  if(m)m.style.transform=`translate(${pmx*-25}px,${pmy*-18}px)`;
-  const c=document.getElementById('charArea');
-  if(c)c.style.transform=`translate(${pmx*15}px,${pmy*10}px)`;
-  const h=document.getElementById('heroText');
-  if(h)h.style.transform=`translateY(-50%) translate(${pmx*-8}px,${pmy*-5}px)`;
-  // 丝带鼠标响应
-  document.querySelectorAll('.ribbon').forEach((r,i)=>{
-    const d=(i+1)*4;
-    r.style.transform=`translateX(${pmx*d*3}px) translateY(${pmy*d*2}px) rotate(${pmx*d*.8}deg)`;
+
+const particles = new THREE.Points(geometry, material);
+scene.add(particles);
+
+// Mouse tracking
+let mouseX = 0, mouseY = 0;
+let targetMouseX = 0, targetMouseY = 0;
+
+document.addEventListener('mousemove', (e) => {
+  targetMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+  targetMouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+});
+
+// Animation loop
+let time = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  time += 0.005;
+  
+  mouseX += (targetMouseX - mouseX) * 0.05;
+  mouseY += (targetMouseY - mouseY) * 0.05;
+  
+  const posArray = geometry.attributes.position.array;
+  
+  for (let i = 0; i < particleCount; i++) {
+    const vel = velocities[i];
+    
+    posArray[i * 3] += vel.x + Math.sin(time + vel.phase) * 0.01;
+    posArray[i * 3 + 1] += vel.y;
+    posArray[i * 3 + 2] += vel.z + Math.cos(time + vel.phase) * 0.005;
+    
+    // Reset particles that go too high
+    if (posArray[i * 3 + 1] > 45) {
+      posArray[i * 3 + 1] = -45;
+      posArray[i * 3] = (Math.random() - 0.5) * 120;
+      posArray[i * 3 + 2] = (Math.random() - 0.5) * 60;
+    }
+    
+    // Wrap horizontal
+    if (posArray[i * 3] > 65) posArray[i * 3] = -65;
+    if (posArray[i * 3] < -65) posArray[i * 3] = 65;
+  }
+  
+  geometry.attributes.position.needsUpdate = true;
+  
+  // Camera subtle movement based on mouse
+  camera.position.x += (mouseX * 3 - camera.position.x) * 0.02;
+  camera.position.y += (-mouseY * 2 - camera.position.y) * 0.02;
+  camera.lookAt(0, 0, 0);
+  
+  // Gentle rotation
+  particles.rotation.y = time * 0.05 + mouseX * 0.1;
+  particles.rotation.x = Math.sin(time * 0.3) * 0.05 + mouseY * 0.05;
+  
+  renderer.render(scene, camera);
+}
+animate();
+
+// Resize handler
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ===========================
+// PARALLAX EFFECT
+// ===========================
+const parallaxLayers = document.querySelectorAll('.parallax-layer');
+
+document.addEventListener('mousemove', (e) => {
+  const x = (e.clientX / window.innerWidth - 0.5);
+  const y = (e.clientY / window.innerHeight - 0.5);
+  
+  parallaxLayers.forEach(layer => {
+    const depth = parseFloat(layer.dataset.depth);
+    const moveX = x * depth * 100;
+    const moveY = y * depth * 100;
+    layer.style.transform = `translate(${moveX}px, ${moveY}px)`;
   });
-  // 头发
-  document.querySelectorAll('.hair').forEach((s,i)=>{
-    const d=(i%5+1)*2;
-    s.style.transform=`rotate(${pmx*d*1.2}deg) translateX(${pmx*d}px)`;
-  });
-}
-parallaxLoop();
+});
 
-// ============================
-//  生成头发丝
-// ============================
-(function(){
-  const hw=document.getElementById('hairWrap');if(!hw)return;
-  for(let i=0;i<18;i++){
-    const s=document.createElement('div');s.className='hair';
-    s.style.left=(8+Math.random()*84)+'%';
-    s.style.top=(Math.random()*15)+'%';
-    s.style.height=(70+Math.random()*130)+'px';
-    s.style.animationDelay=(-Math.random()*3)+'s';
-    s.style.animationDuration=(2.2+Math.random()*2)+'s';
-    s.style.opacity=(.25+Math.random()*.4);
-    hw.appendChild(s);
+// ===========================
+// HAIR STRANDS GENERATION
+// ===========================
+const hairContainer = document.getElementById('charHair');
+if (hairContainer) {
+  for (let i = 0; i < 15; i++) {
+    const strand = document.createElement('div');
+    strand.className = 'hair-strand';
+    strand.style.left = (10 + Math.random() * 80) + '%';
+    strand.style.top = (Math.random() * 20) + '%';
+    strand.style.height = (80 + Math.random() * 120) + 'px';
+    strand.style.animationDelay = (-Math.random() * 3) + 's';
+    strand.style.animationDuration = (2.5 + Math.random() * 2) + 's';
+    strand.style.opacity = (0.3 + Math.random() * 0.4);
+    hairContainer.appendChild(strand);
   }
-})();
+}
 
-// ============================
-//  金色浮尘
-// ============================
-(function(){
-  for(let i=0;i<25;i++){
-    const d=document.createElement('div');d.className='dust';
-    d.style.left=Math.random()*100+'vw';
-    d.style.top=Math.random()*100+'vh';
-    d.style.width=(2+Math.random()*3)+'px';
-    d.style.height=d.style.width;
-    d.style.animation=`cFloat ${7+Math.random()*8}s ease-in-out infinite ${-Math.random()*8}s`;
-    document.body.appendChild(d);
+// ===========================
+// GOLDEN PARTICLES IN BG
+// ===========================
+const goldenParticlesContainer = document.getElementById('goldenParticles');
+if (goldenParticlesContainer) {
+  for (let i = 0; i < 30; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'g-particle';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.top = Math.random() * 100 + '%';
+    particle.style.animationDelay = (-Math.random() * 8) + 's';
+    particle.style.animationDuration = (6 + Math.random() * 6) + 's';
+    particle.style.width = (2 + Math.random() * 3) + 'px';
+    particle.style.height = particle.style.width;
+    goldenParticlesContainer.appendChild(particle);
   }
-})();
-
-// ============================
-//  时钟
-// ============================
-function tick(){const n=new Date();document.getElementById('clock').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')}
-tick();setInterval(tick,30000);
-
-// ============================
-//  活动倒计时
-// ============================
-let evEnd=Date.now()+2*86400000+12*3600000;
-function evTick(){
-  let d=evEnd-Date.now();if(d<0)d=0;
-  const dd=Math.floor(d/86400000);d%=86400000;
-  const hh=Math.floor(d/3600000);d%=3600000;
-  const mm=Math.floor(d/60000);d%=60000;
-  const ss=Math.floor(d/1000);
-  document.getElementById('evTimer').textContent=dd+'天'+hh+'小时'+mm+'分'+ss+'秒';
-}
-evTick();setInterval(evTick,1000);
-
-// ============================
-//  UI 交互
-// ============================
-function sbClick(el,name){
-  document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
-  el.classList.add('active');sparks(event);toast('切换至 '+name);
-}
-function toggleSb(){
-  const sb=document.getElementById('sidebar');
-  const mn=document.getElementById('mainArea');
-  const bn=document.getElementById('botNav');
-  sb.classList.toggle('collapsed');
-  mn.classList.toggle('expanded');
-  bn.classList.toggle('expanded');
-}
-function navGo(n){sparks(event);toast('正在进入 '+n+'…')}
-function bnClick(el,n){
-  document.querySelectorAll('.bn-item').forEach(x=>x.classList.remove('active'));
-  el.classList.add('active');toast(n);
-}
-function doSearch(){
-  const q=document.getElementById('searchIn').value.trim();
-  toast(q?'搜索: '+q:'请输入搜索内容');
-}
-document.getElementById('searchIn').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch()});
-
-function joinEvent(){sparks(event);toast('🎉 成功报名天宫盛典！')}
-function switchDot(i){
-  document.querySelectorAll('.ev-dot').forEach((d,j)=>{d.classList.toggle('active',j===i)});
-  const names=['天宫盛典','仙界斗法','灵宝拍卖'];
-  document.querySelector('.ev-title').textContent=names[i]||names[0];
-  toast('切换至 '+(names[i]||names[0]));
 }
 
-// 修为突破
-let xp=12000,xpMax=20000;
-function doBreak(){
-  if(xp>=xpMax){openModal('break');return}
-  xp=Math.min(xp+2500,xpMax);
-  const pct=xp/xpMax*100;
-  document.getElementById('progFill').style.width=pct+'%';
-  document.getElementById('progTxt').textContent=xp+'/'+xpMax;
-  if(xp>=xpMax){
-    toast('✨ 修为已满！可以突破！');
-    document.getElementById('progFill').style.background='linear-gradient(90deg,#ffd700,#ff8c00)';
-  }else{
-    toast('修为 +2500 → '+xp+'/'+xpMax);
+// ===========================
+// UPDATE TIME
+// ===========================
+function updateTime() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  document.getElementById('statusTime').textContent = h + ':' + m;
+}
+updateTime();
+setInterval(updateTime, 30000);
+
+// ===========================
+// UI INTERACTIONS
+// ===========================
+
+// Sidebar navigation
+function switchPage(el, page) {
+  document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+  el.classList.add('active');
+  createRipple(el, event);
+  showToast(`已切换至${el.querySelector('.sidebar-label').textContent}页面`);
+}
+
+function toggleSidebar() {
+  showToast('侧边栏功能待开发');
+}
+
+// Nav card click
+function handleNavClick(name) {
+  showToast(`正在进入${name}...`);
+  createSparkles(event);
+}
+
+// Search
+function handleSearch() {
+  const query = document.getElementById('searchInput').value.trim();
+  if (query) {
+    showToast(`正在搜索: ${query}`);
+  } else {
+    showToast('请输入搜索内容');
   }
-  sparks(event);
 }
 
-// ============================
-//  弹窗系统
-// ============================
-function openModal(type,data){
-  const t=document.getElementById('mTitle');
-  const b=document.getElementById('mBody');
-  switch(type){
-    case'profile':
-      t.textContent='👸 凌霄仙子';
-      b.innerHTML='<p>境界：化神期 · 九重</p><p>战力：999999</p><p>仙缘值：88888</p><p>门派：天宫仙门</p><p style="margin-top:8px;font-size:11px;color:rgba(180,195,230,0.35)">加入天宫已 365 天</p><button class="modal-btn" onclick="closeModal()">返回</button>';
+document.getElementById('searchInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') handleSearch();
+});
+
+// Bottom nav
+function switchBottomNav(el, name) {
+  document.querySelectorAll('.bottom-nav-item').forEach(item => item.classList.remove('active'));
+  el.classList.add('active');
+  showToast(`已选择: ${name}`);
+}
+
+// Event join
+function handleEventJoin() {
+  showToast('🎉 成功报名天宫盛典！');
+  createSparkles(event);
+}
+
+// Breakthrough
+let cultivationXP = 12000;
+const cultivationMax = 20000;
+
+function handleBreakthrough() {
+  if (cultivationXP >= cultivationMax) {
+    openModal('breakthrough');
+  } else {
+    // Simulate gaining XP
+    cultivationXP = Math.min(cultivationXP + 2000, cultivationMax);
+    const pct = (cultivationXP / cultivationMax * 100);
+    document.getElementById('cultivationProgress').style.width = pct + '%';
+    document.querySelector('.progress-text').textContent = `${cultivationXP}/${cultivationMax}`;
+    
+    if (cultivationXP >= cultivationMax) {
+      showToast('✨ 修为已满！可以突破境界了！');
+      document.getElementById('cultivationProgress').style.background = 'linear-gradient(90deg, #ffd700, #ff8c00)';
+    } else {
+      showToast(`修为提升！当前: ${cultivationXP}/${cultivationMax}`);
+    }
+    createSparkles(event);
+  }
+}
+
+// ===========================
+// MODAL SYSTEM
+// ===========================
+function openModal(type, data) {
+  const overlay = document.getElementById('modalOverlay');
+  const title = document.getElementById('modalTitle');
+  const body = document.getElementById('modalBody');
+  
+  switch (type) {
+    case 'profile':
+      title.textContent = '👸 凌霄仙子';
+      body.innerHTML = `
+        <p>境界：化神期 · 九重</p>
+        <p>战力：999999</p>
+        <p>仙缘值：88888</p>
+        <p>门派：天宫仙门</p>
+        <p style="margin-top:12px;font-size:12px;color:rgba(200,210,240,0.4);">加入天宫已 365 天</p>
+        <button class="modal-btn" onclick="closeModal()">返回</button>
+      `;
       break;
-    case'realm':
-      t.textContent='🏛️ '+data;
-      b.innerHTML='<p>秘境等级：★★★★★</p><p>推荐战力：500000+</p><p>奖励：仙晶×1000、灵丹×5</p><p>每日可挑战 3 次</p><button class="modal-btn" onclick="closeModal();toast(\'⚡ 传送至'+data+'…\')">进入秘境</button>';
+    case 'realm':
+      title.textContent = `🏛️ ${data}`;
+      body.innerHTML = `
+        <p>秘境等级：★★★★★</p>
+        <p>推荐战力：500000+</p>
+        <p>秘境奖励：仙晶 × 1000、灵丹 × 5</p>
+        <p style="margin-top:8px;">每日可挑战 3 次</p>
+        <button class="modal-btn" onclick="enterRealm('${data}')">进入秘境</button>
+      `;
       break;
-    case'player':
-      t.textContent='⚔️ '+data;
-      b.innerHTML='<p>排行榜仙友</p><p>门派：天宫仙门</p><p>活跃度：极高</p><button class="modal-btn" onclick="closeModal();toast(\'已发送切磋请求！\')">发起切磋</button>';
+    case 'player':
+      title.textContent = `⚔️ ${data}`;
+      body.innerHTML = `
+        <p>排行榜玩家信息</p>
+        <p>门派：天宫仙门</p>
+        <p>近期活跃度：极高</p>
+        <button class="modal-btn" onclick="closeModal(); showToast('已发送切磋请求！')">发起切磋</button>
+      `;
       break;
-    case'break':
-      t.textContent='🌟 突破境界';
-      b.innerHTML='<p>修为已满，是否突破至</p><p style="font-size:22px;color:var(--gold-light);margin:10px 0;font-weight:800">渡劫期 · 一重</p><p style="font-size:11px;color:rgba(180,195,230,0.35)">消耗：仙晶 × 5000</p><button class="modal-btn" onclick="confirmBreak()">确认突破</button>';
+    case 'breakthrough':
+      title.textContent = '🌟 突破境界';
+      body.innerHTML = `
+        <p>恭喜！修为已满，是否突破至</p>
+        <p style="font-size:24px;color:var(--gold-light);font-family:'Noto Serif SC',serif;margin:12px 0;">渡劫期 · 一重</p>
+        <p style="font-size:12px;color:rgba(200,210,240,0.4);">突破需消耗：仙晶 × 5000</p>
+        <button class="modal-btn" onclick="doBreakthrough()">确认突破</button>
+      `;
       break;
     default:
-      t.textContent='提示';b.innerHTML='<p>功能开发中…</p><button class="modal-btn" onclick="closeModal()">确定</button>';
+      title.textContent = '提示';
+      body.innerHTML = '<p>功能开发中...</p><button class="modal-btn" onclick="closeModal()">确定</button>';
   }
-  document.getElementById('modalBg').classList.add('open');
-}
-function closeModal(){document.getElementById('modalBg').classList.remove('open')}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
-
-function confirmBreak(){
-  closeModal();xp=0;
-  document.getElementById('progFill').style.width='0%';
-  document.getElementById('progFill').style.background='linear-gradient(90deg,var(--blue-glow),var(--cyan))';
-  document.getElementById('progTxt').textContent='0/25000';
-  document.getElementById('cultRank').textContent='渡劫期 · 一重';
-  xpMax=25000;
-  toast('🎉 突破成功！渡劫期 · 一重');
-  burstSparks();
+  
+  overlay.classList.add('active');
 }
 
-// ============================
-//  Toast
-// ============================
-function toast(msg){
-  const box=document.getElementById('toastBox');
-  const el=document.createElement('div');el.className='toast';
-  el.innerHTML='<span class="toast-i">✨</span><span class="toast-t">'+msg+'</span>';
-  box.appendChild(el);setTimeout(()=>el.remove(),3300);
+function closeModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('modalOverlay').classList.remove('active');
 }
 
-// ============================
-//  点击闪光
-// ============================
-function sparks(e){
-  if(!e)return;
-  const x=e.clientX||e.pageX,y=e.clientY||e.pageY;
-  for(let i=0;i<6;i++){
-    const s=document.createElement('div');s.className='spark';
-    s.style.left=(x+(Math.random()-.5)*50)+'px';
-    s.style.top=(y+(Math.random()-.5)*50)+'px';
-    document.body.appendChild(s);setTimeout(()=>s.remove(),800);
-  }
+function enterRealm(name) {
+  closeModal();
+  showToast(`⚡ 正在传送至${name}...`);
 }
-function burstSparks(){
-  for(let i=0;i<35;i++){
-    setTimeout(()=>{
-      const s=document.createElement('div');s.className='spark';
-      s.style.left=Math.random()*innerWidth+'px';
-      s.style.top=Math.random()*innerHeight+'px';
-      s.style.width=(4+Math.random()*5)+'px';s.style.height=s.style.width;
-      document.body.appendChild(s);setTimeout(()=>s.remove(),800);
-    },i*40);
+
+function doBreakthrough() {
+  closeModal();
+  cultivationXP = 0;
+  document.getElementById('cultivationProgress').style.width = '0%';
+  document.getElementById('cultivationProgress').style.background = 'linear-gradient(90deg, var(--blue-glow), var(--cyan-glow))';
+  document.querySelector('.progress-text').textContent = '0/25000';
+  document.querySelector('.cultivation-rank').textContent = '渡劫期 · 一重';
+  showToast('🎉 恭喜突破至渡劫期！');
+  
+  // Massive sparkle effect
+  for (let i = 0; i < 30; i++) {
+    setTimeout(() => {
+      const sparkle = document.createElement('div');
+      sparkle.className = 'sparkle';
+      sparkle.style.left = Math.random() * window.innerWidth + 'px';
+      sparkle.style.top = Math.random() * window.innerHeight + 'px';
+      sparkle.style.width = (4 + Math.random() * 6) + 'px';
+      sparkle.style.height = sparkle.style.width;
+      document.body.appendChild(sparkle);
+      setTimeout(() => sparkle.remove(), 1000);
+    }, i * 50);
   }
 }
 
-// ============================
-//  欢迎提示
-// ============================
-window.addEventListener('load',()=>{
-  setTimeout(()=>toast('🌟 欢迎回来，凌霄仙子！'),800);
-  setTimeout(()=>toast('📋 您有 3 个每日任务待完成'),2200);
+// ===========================
+// TOAST NOTIFICATIONS
+// ===========================
+function showToast(message) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <span class="toast-icon">✨</span>
+    <span class="toast-text">${message}</span>
+  `;
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.remove();
+  }, 3500);
+}
+
+// ===========================
+// RIPPLE EFFECT
+// ===========================
+function createRipple(element, e) {
+  const ripple = document.createElement('div');
+  ripple.className = 'ripple';
+  const rect = element.getBoundingClientRect();
+  if (e) {
+    ripple.style.left = (e.clientX - rect.left) + 'px';
+    ripple.style.top = (e.clientY - rect.top) + 'px';
+  } else {
+    ripple.style.left = rect.width / 2 + 'px';
+    ripple.style.top = rect.height / 2 + 'px';
+  }
+  element.style.position = 'relative';
+  element.style.overflow = 'hidden';
+  element.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 600);
+}
+
+// ===========================
+// SPARKLE EFFECT ON CLICK
+// ===========================
+function createSparkles(e) {
+  if (!e) return;
+  const x = e.clientX || e.pageX;
+  const y = e.clientY || e.pageY;
+  
+  for (let i = 0; i < 8; i++) {
+    const sparkle = document.createElement('div');
+    sparkle.className = 'sparkle';
+    sparkle.style.left = (x + (Math.random() - 0.5) * 60) + 'px';
+    sparkle.style.top = (y + (Math.random() - 0.5) * 60) + 'px';
+    document.body.appendChild(sparkle);
+    setTimeout(() => sparkle.remove(), 1000);
+  }
+}
+
+// Global click sparkle
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.nav-card') || e.target.closest('.breakthrough-btn') || 
+      e.target.closest('.event-btn') || e.target.closest('.realm-card')) {
+    // Already handled
+  }
+});
+
+// ===========================
+// DYNAMIC RIBBON MOVEMENT BASED ON MOUSE
+// ===========================
+document.addEventListener('mousemove', (e) => {
+  const ribbons = document.querySelectorAll('.ribbon');
+  const x = (e.clientX / window.innerWidth - 0.5);
+  const y = (e.clientY / window.innerHeight - 0.5);
+  
+  ribbons.forEach((ribbon, i) => {
+    const offset = (i + 1) * 3;
+    ribbon.style.transform = `translateX(${x * offset * 5}px) translateY(${y * offset * 3}px) rotate(${x * offset}deg)`;
+  });
+  
+  // Hair strands react to mouse
+  const strands = document.querySelectorAll('.hair-strand');
+  strands.forEach((strand, i) => {
+    const offset = (i % 5 + 1) * 2;
+    strand.style.transform = `rotate(${x * offset}deg) translateX(${x * offset * 2}px)`;
+  });
+});
+
+// ===========================
+// INITIAL ANIMATION
+// ===========================
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    showToast('🌟 欢迎回来，凌霄仙子！');
+  }, 1000);
+  
+  setTimeout(() => {
+    showToast('📋 您有 3 个每日任务待完成');
+  }, 2500);
+});
+
+// ===========================
+// KEYBOARD SHORTCUTS
+// ===========================
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeModal();
+  }
 });
 </script>
 </body>
